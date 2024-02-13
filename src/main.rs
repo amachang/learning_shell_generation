@@ -15,18 +15,9 @@ static TEMPLATE_ENGINE: Lazy<upon::Engine> = Lazy::new(|| {
 
 fn escape_shell(formatter: &mut upon::fmt::Formatter<'_>, value: &upon::Value) -> upon::fmt::Result {
     match value {
-        upon::Value::None => formatter.write_str("''")?,
+        upon::Value::None => return Err("Value::None is not supported in shell script template".into()),
         upon::Value::String(s) => formatter.write_str(&shell_escape::escape(s.into()))?,
-        upon::Value::Bool(b) => {
-            if *b {
-                // zero-length string is treated as false in zsh [[ ]] condition
-                formatter.write_str("''")?;
-            } else {
-                // non-zero-length string is treated as true in zsh [[ ]] condition
-                formatter.write_str("'true'")?;
-            }
-
-        },
+        upon::Value::Bool(b) => return Err(format!("Value::Bool({}) is not supported in shell script template, because what boolean is depends on syntaxt context", b).into()),
         upon::Value::Integer(i) => formatter.write_str(&i.to_string())?,
         upon::Value::Float(f) => formatter.write_str(&f.to_string())?,
         upon::Value::List(l) => {
