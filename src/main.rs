@@ -23,6 +23,9 @@ fn escape_shell(formatter: &mut upon::fmt::Formatter<'_>, value: &upon::Value) -
         upon::Value::List(l) => {
             formatter.write_str("(")?;
             for v in l.iter() {
+                if let upon::Value::List(_) | upon::Value::Map(_) = v {
+                    return Err("nested list or map is not supported in shell script template".into());
+                }
                 escape_shell(formatter, v)?;
                 formatter.write_str(" ")?;
             }
@@ -31,6 +34,9 @@ fn escape_shell(formatter: &mut upon::fmt::Formatter<'_>, value: &upon::Value) -
         upon::Value::Map(m) => {
             formatter.write_str("(")?;
             for (k, v) in m.iter() {
+                if let upon::Value::List(_) | upon::Value::Map(_) = v {
+                    return Err("nested list or map is not supported in shell script template".into());
+                }
                 formatter.write_str(&shell_escape::escape(k.into()))?;
                 formatter.write_str(" ")?;
                 escape_shell(formatter, v)?;
